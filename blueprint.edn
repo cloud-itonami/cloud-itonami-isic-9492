@@ -1,4 +1,4 @@
-{:itonami.blueprint/id "cloud-itonami-9492"
+{:itonami.blueprint/id "cloud-itonami-isic-9492"
  :itonami.blueprint/name "Activities of political organizations"
  :itonami.blueprint/isic-rev5 "9492"
  :itonami.blueprint/domain :services/political-orgs

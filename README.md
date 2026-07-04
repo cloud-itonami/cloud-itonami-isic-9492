@@ -1,4 +1,4 @@
-# cloud-itonami-9492
+# cloud-itonami-isic-9492
 
 Open Business Blueprint for **ISIC Rev.5 9492**: Activities of political organizations.
 

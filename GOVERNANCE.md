@@ -1,6 +1,6 @@
 # Governance
 
-`cloud-itonami-9492` is an OSS open-business blueprint for activities of political organizations -- political party and political-advocacy-group administration.
+`cloud-itonami-isic-9492` is an OSS open-business blueprint for activities of political organizations -- political party and political-advocacy-group administration.
 Governance covers both the capability layer and the operator model.
 
 ## Maintainers

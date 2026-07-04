@@ -2,7 +2,7 @@
 
 ## Classification
 
-- Repository: `cloud-itonami-9492`
+- Repository: `cloud-itonami-isic-9492`
 - ISIC Rev.5: `9492`
 - Activity: activities of political organizations -- political party and political-advocacy-group administration
 - Social impact: community access, data sovereignty, transparent audit
