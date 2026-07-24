@@ -26,7 +26,21 @@
   Seed values are drawn from each jurisdiction's official election/
   political-finance regulator (see `:provenance`); they are a
   STARTING catalog, not a from-scratch survey of all ~194
-  jurisdictions.")
+  jurisdictions.
+
+  Canada (CAN) is the fifth seeded jurisdiction: the Canada Elections
+  Act (S.C. 2000, c. 9), section 320, requires that a candidate or
+  registered party (or a person acting on their behalf) who causes
+  election advertising to be conducted must mention in or on the
+  message that its transmission was authorized by the official agent
+  of the candidate or the registered agent of the party -- Canada's
+  own equivalent of the US FECA 'paid for by' disclaimer, the UK
+  PPERA imprint, and Germany's Impressumspflicht. The Chief Electoral
+  Officer (heading Elections Canada) administers the Act under
+  section 16's general mandate: 'exercise general direction and
+  supervision over the conduct of elections' and 'exercise the powers
+  and perform the duties and functions that are necessary for the
+  administration of this Act.'")
 
 (def catalog
   "iso3 -> requirement map. `:required-evidence` mirrors the generic
@@ -70,7 +84,16 @@
           :required-evidence ["Mitgliederkonsensprotokoll (member-consensus record)"
                               "Impressumsnachweis (disclaimer-compliance record)"
                               "Vorstandsbeschluss (governing-body-approval record)"
-                              "Veröffentlichungsmitteilung (publication-notice record)"]}})
+                              "Veröffentlichungsmitteilung (publication-notice record)"]}
+   "CAN" {:name "Canada"
+          :owner-authority "Chief Electoral Officer (Elections Canada)"
+          :legal-basis "Canada Elections Act (S.C. 2000, c. 9), s. 320 -- message must be authorized"
+          :national-spec "s. 320: 'A candidate or registered party, or a person acting on their behalf, who causes election advertising to be conducted shall mention in or on the message that its transmission was authorized by the official agent of the candidate or by the registered agent of the party, as the case may be.'"
+          :provenance "https://laws-lois.justice.gc.ca/eng/acts/e-2.01/FullText.html"
+          :required-evidence ["Member-consensus record"
+                              "Disclaimer-compliance record"
+                              "Governing-body-approval record"
+                              "Publication-notice record"]}})
 
 (defn spec-basis
   "The jurisdiction's requirement map, or nil -- nil means NO spec-basis,
