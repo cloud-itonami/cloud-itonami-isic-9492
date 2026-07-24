@@ -3,9 +3,14 @@
             [partyops.facts :as facts]))
 
 (deftest known-jurisdictions-have-a-spec-basis
-  (doseq [iso3 ["JPN" "USA" "GBR" "DEU"]]
+  (doseq [iso3 ["JPN" "USA" "GBR" "DEU" "CAN"]]
     (is (some? (facts/spec-basis iso3)) (str iso3 " should have a spec-basis"))
     (is (= 4 (count (:required-evidence (facts/spec-basis iso3)))))))
+
+(deftest coverage-includes-can-alongside-all-others
+  (let [c (facts/coverage ["JPN" "USA" "GBR" "DEU" "CAN"])]
+    (is (= 5 (:covered c)))
+    (is (= ["CAN" "DEU" "GBR" "JPN" "USA"] (:covered-jurisdictions c)))))
 
 (deftest unknown-jurisdiction-has-no-spec-basis
   (is (nil? (facts/spec-basis "ATL"))))
