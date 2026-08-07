@@ -29,6 +29,7 @@
                :cljs [cljs.reader :as edn])
             [clojure.string :as str]
             [partyops.facts :as facts]
+            [partyops.material :as material]
             [partyops.registry :as registry]
             [partyops.store :as store]
             [langchain.model :as model]))
@@ -108,6 +109,43 @@
        :stake      nil
        :confidence 0.9})))
 
+(defn- screen-material
+  "選挙運動用文書図画・行為の適法性 screen draft（`kotoba-lang/senkyo`）。
+
+  `:fabricate-verdict?` が注入する失敗モードは、この actor が本当に守りたい
+  もの: **advisor が結論を作る**こと。真の screen 結果に関わらず
+  `:permitted` を主張させる。governor は提案の主張を読まずに再計算するので、
+  `:screen-verdict-mismatch` で HARD hold になる。
+
+  `:intents` に `senkyo.screen/out-of-scope-intents` の要素を注入すると、
+  screen 自体が `:out-of-scope` で止まることも確認できる。
+
+  （このモック advisor は `material/recompute` を自分でも呼ぶ。決定論的モックで
+  ある以上それは避けられないので、governor 契約を実際に駆動するのは上記 2 つの
+  注入である —— 既存の `verify-jurisdiction` が `:no-spec?` で同じことを
+  している。）"
+  [db {:keys [subject medium attrs intents fabricate-verdict?]}]
+  (let [p (store/position db subject)
+        result (material/recompute p {:medium medium :attrs attrs :intents intents})
+        claimed (if fabricate-verdict? :permitted (:verdict result))]
+    {:summary    (str (or (:position-name p) subject) ": " medium " の適法性 screen -> " claimed)
+     :rationale  (if p
+                   (str "法域=" (:jurisdiction p) " 手段=" medium
+                        " / senkyo screen: " (:note result))
+                   "公表案件が見つかりません")
+     :cites      (if p
+                   (vec (distinct (remove nil? (map :legal-basis (:findings result)))))
+                   [])
+     :effect     :material-screen/set
+     :value      {:position-id subject
+                  :medium medium
+                  :attrs (or attrs {})
+                  :intents (vec (or intents []))
+                  :claimed-verdict claimed
+                  :required-evidence (:required-evidence result)}
+     :stake      nil
+     :confidence (if p 0.9 0.0)}))
+
 (defn- propose-position-publication
   "Draft the actual POSITION-PUBLICATION action -- publishing a real
   public political position or endorsement on the organization's
@@ -143,6 +181,7 @@
     :member/intake                (normalize-intake db request)
     :position/verify                 (verify-jurisdiction db request)
     :disclaimer/screen                  (screen-disclaimer db request)
+    :material/screen                       (screen-material db request)
     :actuation/publish-position             (propose-position-publication db request)
     {:summary "未対応の操作" :rationale (str op) :cites []
      :effect :noop :stake nil :confidence 0.0}))
@@ -163,7 +202,7 @@
        "キー: :summary(人向けドラフト) :rationale(根拠/必ず事実から) "
        ":cites(使った事実キーのベクタ) "
        ":effect(:position/upsert|:verification/set|:disclaimer-screen/set|"
-       ":position/mark-published) "
+       ":material-screen/set|:position/mark-published) "
        ":stake(:actuation/publish-position か nil) :confidence(0..1)。\n"
        "重要: 登録されていない法域の要件を絶対に創作してはいけません。"
        "spec-basisが無い場合は :cites を空にし confidence を上げないこと。"))
@@ -172,6 +211,7 @@
   (case op
     :position/verify              {:position (store/position st subject)}
     :disclaimer/screen             {:position (store/position st subject)}
+    :material/screen                {:position (store/position st subject)}
     :actuation/publish-position     {:position (store/position st subject)}
     {:position (store/position st subject)}))
 

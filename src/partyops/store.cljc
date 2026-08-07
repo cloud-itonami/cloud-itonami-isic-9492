@@ -37,6 +37,7 @@
   (position [s id])
   (all-positions [s])
   (disclaimer-screen-of [s position-id] "committed campaign-finance-disclaimer screening verdict for a position, or nil")
+  (material-screen-of [s position-id] "committed campaign-material/conduct legality screening result for a position, or nil")
   (verify-of [s position-id] "committed jurisdiction verification, or nil")
   (ledger [s])
   (publication-history [s] "the append-only position-publication history (partyops.registry drafts)")
@@ -91,6 +92,7 @@
   (position [_ id] (get-in @a [:positions id]))
   (all-positions [_] (sort-by :id (vals (:positions @a))))
   (disclaimer-screen-of [_ id] (get-in @a [:disclaimer-screens id]))
+  (material-screen-of [_ id] (get-in @a [:material-screens id]))
   (verify-of [_ position-id] (get-in @a [:verifications position-id]))
   (ledger [_] (:ledger @a))
   (publication-history [_] (:publications @a))
@@ -106,6 +108,9 @@
 
       :disclaimer-screen/set
       (swap! a assoc-in [:disclaimer-screens (first path)] payload)
+
+      :material-screen/set
+      (swap! a assoc-in [:material-screens (first path)] payload)
 
       :position/mark-published
       (let [position-id (first path)
@@ -127,7 +132,8 @@
   default."
   []
   (->MemStore (atom (assoc (demo-data)
-                           :verifications {} :disclaimer-screens {} :ledger [] :sequences {}
+                           :verifications {} :disclaimer-screens {} :material-screens {}
+                           :ledger [] :sequences {}
                            :publications []))))
 
 ;; ----------------------------- DatomicStore (langchain.db) -----------------------------
@@ -141,6 +147,7 @@
   {:position/id                  {:db/unique :db.unique/identity}
    :verification/position-id     {:db/unique :db.unique/identity}
    :disclaimer-screen/position-id {:db/unique :db.unique/identity}
+   :material-screen/position-id  {:db/unique :db.unique/identity}
    :ledger/seq                   {:db/unique :db.unique/identity}
    :publication/seq              {:db/unique :db.unique/identity}
    :sequence/jurisdiction        {:db/unique :db.unique/identity}})
@@ -189,6 +196,10 @@
     (dec* (d/q '[:find ?p . :in $ ?pid
                 :where [?k :disclaimer-screen/position-id ?pid] [?k :disclaimer-screen/payload ?p]]
               (d/db conn) id)))
+  (material-screen-of [_ id]
+    (dec* (d/q '[:find ?p . :in $ ?pid
+                :where [?k :material-screen/position-id ?pid] [?k :material-screen/payload ?p]]
+              (d/db conn) id)))
   (verify-of [_ position-id]
     (dec* (d/q '[:find ?p . :in $ ?pid
                 :where [?a :verification/position-id ?pid] [?a :verification/payload ?p]]
@@ -218,6 +229,9 @@
 
       :disclaimer-screen/set
       (d/transact! conn [{:disclaimer-screen/position-id (first path) :disclaimer-screen/payload (enc payload)}])
+
+      :material-screen/set
+      (d/transact! conn [{:material-screen/position-id (first path) :material-screen/payload (enc payload)}])
 
       :position/mark-published
       (let [position-id (first path)
