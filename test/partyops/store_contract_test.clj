@@ -23,6 +23,7 @@
       (is (= ["position-1" "position-2" "position-3" "position-4"]
              (mapv :id (store/all-positions s))))
       (is (nil? (store/disclaimer-screen-of s "position-1")))
+      (is (nil? (store/material-screen-of s "position-1")))
       (is (nil? (store/verify-of s "position-1")))
       (is (= [] (store/ledger s)))
       (is (= [] (store/publication-history s)))
@@ -44,6 +45,15 @@
         (store/commit-record! s {:effect :disclaimer-screen/set :path ["position-1"]
                                  :payload {:position-id "position-1" :disclaimer-included? true}})
         (is (= {:position-id "position-1" :disclaimer-included? true} (store/disclaimer-screen-of s "position-1"))))
+      (testing "material-screen payload commits and reads back on both backends"
+        (let [payload {:position-id "position-1" :medium :poster
+                       :attrs {:within-campaign-period? true}
+                       :intents [] :claimed-verdict :permitted-with-obligations
+                       :required-evidence ["material-attribution-record"]}]
+          (store/commit-record! s {:effect :material-screen/set :path ["position-1"]
+                                   :payload payload})
+          (is (= payload (store/material-screen-of s "position-1")))
+          (is (nil? (store/material-screen-of s "position-2")))))
       (testing "position-publication drafts a record and advances the sequence"
         (store/commit-record! s {:effect :position/mark-published :path ["position-1"]})
         (is (= "JPN-POS-000000" (get (first (store/publication-history s)) "record_id")))

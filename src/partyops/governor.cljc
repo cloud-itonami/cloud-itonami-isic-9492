@@ -84,7 +84,29 @@
                                        `leasing`'s/`union`'s -- an
                                        honest reuse of the family
                                        shape, not claimed as new.
-    5. Confidence floor / actuation
+    5. Campaign-conduct not
+       permitted                     -- for `:material/screen`,
+                                       INDEPENDENTLY re-run the
+                                       `kotoba-lang/senkyo` legality
+                                       screen from the POSITION's own
+                                       jurisdiction and the proposal's
+                                       declared medium/attributes, and
+                                       HOLD when the recomputed verdict
+                                       blocks (`:prohibited` /
+                                       `:no-spec-basis` /
+                                       `:undetermined` /
+                                       `:out-of-scope`). A SECOND,
+                                       distinct violation fires when the
+                                       advisor's CLAIMED verdict
+                                       disagrees with the recomputed one
+                                       -- a disagreement is itself
+                                       evidence the advisor authored a
+                                       conclusion rather than reporting
+                                       one. Same discipline as check 4:
+                                       recompute from the actor's own
+                                       records, never read the proposal's
+                                       answer.
+    6. Confidence floor / actuation
        gate                          -- LLM confidence below threshold,
                                        OR the op is `:actuation/
                                        publish-position` (a REAL public
@@ -99,6 +121,7 @@
   informed by `cloud-itonami-isic-6492`'s status-lifecycle bug
   (ADR-2607071320)."
   (:require [partyops.facts :as facts]
+            [partyops.material :as material]
             [partyops.registry :as registry]
             [partyops.store :as store]))
 
@@ -170,6 +193,37 @@
           :detail (str subject " の賛成票比率(" (:votes-in-favor p) "/" (:votes-cast p)
                       ")が必要合意比率(" (:required-consensus-share p) ")を下回っている")}]))))
 
+(defn- campaign-conduct-violations
+  "For `:material/screen`: re-run the senkyo legality screen
+  INDEPENDENTLY -- the jurisdiction comes from the POSITION record (not
+  the proposal, or the advisor could choose its own jurisdiction), and
+  the advisor's claimed verdict is never read as an input.
+
+  Two distinct HARD rules:
+  - `:campaign-conduct-not-permitted` -- the recomputed verdict blocks.
+    `:undetermined` blocks too: 'approve your way past not knowing' is
+    exactly the path this actor must not have. The remedy is to supply
+    the missing attribute and re-run, not to escalate.
+  - `:screen-verdict-mismatch` -- the advisor claimed a verdict that
+    disagrees with the recomputed one. Not knowing is a hold; claiming
+    the wrong answer is a separate, named violation."
+  [{:keys [op subject]} proposal st]
+  (when (= op :material/screen)
+    (let [p (store/position st subject)
+          value (:value proposal)
+          result (material/recompute p value)
+          claimed (:claimed-verdict value)
+          vs (cond-> []
+               (material/blocking? result)
+               (conj {:rule :campaign-conduct-not-permitted
+                      :detail (material/hold-detail result)})
+
+               (material/verdict-mismatch? claimed result)
+               (conj {:rule :screen-verdict-mismatch
+                      :detail (str "advisor の主張 " claimed
+                                   " と独立再計算 " (:verdict result) " が食い違う")}))]
+      (seq vs))))
+
 (defn- already-published-violations
   "For `:actuation/publish-position`, refuses to publish the SAME
   position twice, off a dedicated `:published?` fact -- see ns
@@ -191,6 +245,7 @@
                            (evidence-incomplete-violations request st)
                            (campaign-finance-disclaimer-missing-violations request proposal st)
                            (member-consensus-share-insufficient-violations request st)
+                           (campaign-conduct-violations request proposal st)
                            (already-published-violations request st)))
         conf (:confidence proposal 0.0)
         low? (< conf confidence-floor)

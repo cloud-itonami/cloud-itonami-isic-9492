@@ -28,11 +28,19 @@
   safety/anti-doping/egress/conduct screening op has. Like every prior
   sibling's phase 3 `:auto` set, this domain has only ONE member
   (`:member/intake`) -- no separate no-capital-risk 'file' lifecycle
-  distinct from the member itself.")
+  distinct from the member itself.
+
+  `:material/screen` (campaign-material/conduct legality screening
+  against `kotoba-lang/senkyo`) joins phase 2's `:writes` and is
+  likewise NEVER auto-eligible at any phase, for the same reason every
+  screening op in this fleet is not: a screening op that can
+  auto-commit is a screening op whose finding nobody read. Its
+  governor check re-runs the screen INDEPENDENTLY of the advisor's
+  claim, so an auto path would also mean nobody compared the two.")
 
 (def read-ops  #{})
 (def write-ops #{:member/intake :position/verify :disclaimer/screen
-                 :actuation/publish-position})
+                 :material/screen :actuation/publish-position})
 
 ;; NOTE the invariant: `:actuation/publish-position` is a member of
 ;; `write-ops` (governor-gated like any write) but is NEVER a member
@@ -42,7 +50,8 @@
   auto-commit when governor-clean>}."
   {0 {:label "read-only"        :writes #{}                                                              :auto #{}}
    1 {:label "assisted-intake"  :writes #{:member/intake}                                                :auto #{}}
-   2 {:label "assisted-verify"  :writes #{:member/intake :position/verify :disclaimer/screen}             :auto #{}}
+   2 {:label "assisted-verify"  :writes #{:member/intake :position/verify :disclaimer/screen
+                                          :material/screen}                                              :auto #{}}
    3 {:label "supervised-auto"  :writes write-ops
       :auto #{:member/intake}}})
 

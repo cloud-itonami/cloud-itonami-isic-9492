@@ -6,8 +6,12 @@
  ;; repo is standalone (forkable outside the workspace); the :local/root
  ;; paths only resolve inside the monorepo checkout — a standalone fork
  ;; should override them with git coordinates.
+ ;; senkyo — 選挙運動の法域別規制 / 手続き / 選管 join の共有ライブラリ
+ ;; （純 .cljc、依存ゼロ）。`:material/screen` op がこれを消費する。
  :deps {io.github.kotoba-lang/langgraph
-        {:local/root "../../kotoba-lang/langgraph"}}
+        {:local/root "../../kotoba-lang/langgraph"}
+        io.github.kotoba-lang/senkyo
+        {:local/root "../../kotoba-lang/senkyo"}}
  :aliases
  {;; offline workspace dev -- pin transitive langchain to local checkout
   :dev {:override-deps

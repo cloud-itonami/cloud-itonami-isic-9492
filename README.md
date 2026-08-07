@@ -147,6 +147,46 @@ POSITIVE actuation (committing a real publication record), matching
 this fleet's majority actuation shape (`3600`/`6190` are the fleet's
 two NEGATIVE-actuation exceptions).
 
+### Campaign-conduct legality (`:material/screen`)
+
+`:disclaimer/screen` answers **one boolean** -- is the required
+disclaimer present. It does not answer whether the campaign method
+itself is lawful, and those are genuinely different questions:
+a leaflet can carry a perfect imprint and still be illegal to
+distribute, and door-to-door canvassing is a **crime in Japan**
+(公職選挙法 §138) while being constitutionally **protected** in the
+United States (Watchtower v. Village of Stratton, 536 U.S. 150 (2002))
+and affirmatively **guaranteed access** in Canada (Canada Elections
+Act s.81). An advisor carrying one jurisdiction's campaign norms into
+another does not produce a suboptimal plan; it produces a criminal one.
+
+`:material/screen` re-runs `kotoba-lang/senkyo`'s legality screen
+through `partyops.material` and HARD-holds on the result. Three
+disciplines, each with a test that fails when it is removed:
+
+- **The jurisdiction comes from the POSITION record, never the
+  proposal.** If the advisor supplied the jurisdiction it could choose
+  the law it is judged under.
+- **The advisor's claimed verdict is never read as an input.** The
+  governor recomputes, then compares -- a disagreement raises its own
+  named violation (`:screen-verdict-mismatch`) separate from the
+  underlying illegality (`:campaign-conduct-not-permitted`). Same
+  discipline as check 4's independent ratio recompute.
+- **`:undetermined` HARD-holds too.** An unresolved screen is not an
+  escalation a human may approve; the remedy is to supply the missing
+  attribute and re-run. There is no "approve your way past not
+  knowing" path.
+
+**Structurally absent, not unimplemented.** `partyops.material/out-of-
+scope-intents` re-exports `senkyo.screen/out-of-scope-intents`
+verbatim -- this actor does not restate the boundary, because a
+boundary restated per actor drifts per actor. A request carrying any
+of `:voter-targeting`, `:vote-persuasion-script`, `:candidate-ranking`,
+`:turnout-operation`, `:distribution-dispatch`, `:opinion-profiling` or
+`:eligibility-adjudication` is stopped before any screening runs. These
+are not gated by risk level, cannot be escalated for human override,
+and the proposal vocabulary has no path to construct them.
+
 ## The core contract
 
 ```
@@ -227,12 +267,13 @@ reference at all.
 | `src/partyops/store.cljc` | **Store** protocol -- `MemStore` ‖ `DatomicStore` (`langchain.db`) + append-only audit ledger + position-publication history. No dynamically-filed sub-record -- the actuation op acts directly on a pre-seeded position, and the double-actuation guard checks a dedicated `:published?` boolean rather than a `:status` value |
 | `src/partyops/registry.cljc` | Position-publication draft records, plus `member-consensus-share-insufficient?` -- an HONEST reuse of this fleet's ratio-based check family (the FOURTH instance, MINIMUM-floor direction like `leasing`'s/`union`'s), not claimed as new |
 | `src/partyops/facts.cljc` | Per-jurisdiction campaign-finance-disclosure/imprint catalog with an official spec-basis citation per entry, honest coverage reporting |
-| `src/partyops/partyopsllm.cljc` | **PartyOps-LLM** -- `mock-advisor` ‖ `llm-advisor`; intake/jurisdiction-verification/disclaimer-screening/publication proposals |
-| `src/partyops/governor.cljc` | **Political Organization Governance Governor** -- 5 HARD checks (spec-basis · evidence-incomplete · campaign-finance-disclaimer-missing, unconditional evaluation, GENUINELY NEW, the 59th grounding of this discipline · member-consensus-share-insufficient, ratio-based reuse, the 4th instance, not claimed as new · already-published guard) + 1 soft (confidence/actuation gate) |
+| `src/partyops/material.cljc` | **Campaign-conduct bridge** to `kotoba-lang/senkyo` -- independent re-screen of a method's legality from the POSITION's jurisdiction, plus the re-exported out-of-scope intent set (the boundary is defined once, in the shared library) |
+| `src/partyops/partyopsllm.cljc` | **PartyOps-LLM** -- `mock-advisor` ‖ `llm-advisor`; intake/jurisdiction-verification/disclaimer-screening/material-screening/publication proposals |
+| `src/partyops/governor.cljc` | **Political Organization Governance Governor** -- 6 HARD checks (spec-basis · evidence-incomplete · campaign-finance-disclaimer-missing, unconditional evaluation, GENUINELY NEW, the 59th grounding of this discipline · member-consensus-share-insufficient, ratio-based reuse, the 4th instance, not claimed as new · **campaign-conduct-not-permitted + screen-verdict-mismatch**, independent re-screen against `senkyo` · already-published guard) + 1 soft (confidence/actuation gate) |
 | `src/partyops/phase.cljc` | **Phase 0→3** -- read-only → assisted intake → assisted verify → supervised (position publication always human; member intake is the ONLY auto-eligible op, no direct capital risk) |
 | `src/partyops/operation.cljc` | **OperationActor** -- langgraph-clj StateGraph |
 | `src/partyops/sim.cljc` | demo driver |
-| `test/partyops/*_test.clj` | governor contract · phase invariants · store parity · registry conformance · facts coverage |
+| `test/partyops/*_test.clj` | governor contract · phase invariants · store parity · registry conformance · facts coverage · **campaign-conduct screening** (`material_test.clj`) |
 
 ## Business-process coverage (honest)
 
@@ -245,6 +286,7 @@ blueprint's own `docs/business-model.md` names as its Offer:
 |---|---|
 | Member/supporter intake + per-jurisdiction evidence checklisting, HARD-gated on an official spec-basis citation (`:member/intake`/`:position/verify`) | Real membership-management-system integration, real campaign-finance-compliance filing itself (see `partyops.facts`'s docstring) |
 | Campaign-finance-disclaimer screening, evaluated unconditionally so the screening op itself can HARD-hold on its own finding (`:disclaimer/screen`) | Any political-judgment or policy-merit determination itself -- deliberately outside this actor's competence |
+| Campaign-material/conduct **legality** screening against `kotoba-lang/senkyo` (`:material/screen`) -- is this method lawful at all in this position's jurisdiction, on what basis, with what evidence | Voter targeting, vote-persuasion scripting, candidate ranking, turnout operations, distribution dispatch, opinion profiling, eligibility adjudication -- **not unimplemented; structurally absent** (see below) |
 | Position/endorsement publication, HARD-gated on full evidence, an included disclaimer and a sufficient member-consensus vote share, plus a double-publication guard (`:actuation/publish-position`) | |
 | Immutable audit ledger for every intake/verification/screening/publication decision | |
 
@@ -258,12 +300,20 @@ act" pattern this repo's flagship op already establishes.
 
 `partyops.facts/coverage` reports how many requested jurisdictions
 actually have an official spec-basis in `partyops.facts/catalog` --
-currently 4 seeded (JPN, USA, GBR, DEU) out of ~194 jurisdictions
-worldwide. This is a starting catalog to prove the governor contract
-end-to-end, not a claim of global coverage. Adding a jurisdiction is
-additive: one map entry in `partyops.facts/catalog`, citing a real
-official source -- never fabricate a jurisdiction's requirements to
-make coverage look bigger.
+currently **5** seeded (JPN, USA, GBR, DEU, CAN) out of ~194
+jurisdictions worldwide. This is a starting catalog to prove the
+governor contract end-to-end, not a claim of global coverage. Adding a
+jurisdiction is additive: one map entry in `partyops.facts/catalog`,
+citing a real official source -- never fabricate a jurisdiction's
+requirements to make coverage look bigger.
+
+**Two catalogs, not one.** `partyops.facts` covers campaign-finance
+**disclosure/imprint** requirements; `kotoba-lang/senkyo` (consumed by
+`:material/screen`, see below) covers **which campaign methods are
+lawful at all** in a jurisdiction. They are separate tables with
+separate coverage, and a jurisdiction can be in one and not the other
+-- `partyops.material/jurisdiction-supported?` answers the senkyo side.
+Do not read one catalog's coverage as the other's.
 
 ## Maturity
 
