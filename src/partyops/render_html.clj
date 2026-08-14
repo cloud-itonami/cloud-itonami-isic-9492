@@ -50,12 +50,19 @@
 ;; phase 3) traces to declared repo data like everything else.
 (def ^:private operator sim/operator)
 
-(defn- exec! [actor tid request]
-  (g/run* actor {:request request :context operator} {:thread-id tid}))
+(defn- record!
+  "Keeps the LATEST audit channel per thread.
 
-(defn- approve! [actor tid]
-  (g/run* actor {:approval {:status :approved :by (:actor-id operator)}}
-          {:thread-id tid :resume? true}))
+  The graph's `:audit` channel uses an `into` reducer and each thread
+  is checkpointed, so a RESUMED run's audit already contains that
+  thread's pre-interrupt facts. Keeping the last run per thread is
+  therefore what avoids double-counting -- concatenating every run's
+  channel would duplicate every proposal on an approved thread."
+  [trace tid r]
+  (swap! trace (fn [{:keys [order by-thread]}]
+                 {:order (if (contains? by-thread tid) order (conj order tid))
+                  :by-thread (assoc by-thread tid (vec (-> r :state :audit)))}))
+  r)
 
 ;; ----------------------------- the scenario -----------------------------
 
@@ -113,64 +120,82 @@
                                      position-4 screened and found
                                      missing its required disclaimer
 
-  Returns the resulting store. Every field the renderer reads is real
-  governor/store output."
+  Returns `{:db store :audit [..]}`. The audit vector is the graph's
+  own `:audit` channel, which is NOT the same thing as the persisted
+  store ledger: `partyops.operation` writes only `:committed` and hold
+  facts to the SSoT, so the advisor's proposals, the approval requests
+  and the approval GRANTS exist only in-graph. The approver-attribution
+  section below needs the grants, so the renderer must carry them
+  rather than re-read the ledger. Every field the renderer reads is
+  real governor/store/graph output."
   []
   (let [db (store/seed-db)
-        actor (op/build db)]
+        actor (op/build db)
+        trace (atom {:order [] :by-thread {}})
+        exec! (fn [tid request]
+                (record! trace tid
+                         (g/run* actor {:request request :context operator}
+                                 {:thread-id tid})))
+        approve! (fn [tid]
+                   (record! trace tid
+                            (g/run* actor {:approval {:status :approved
+                                                      :by (:actor-id operator)}}
+                                    {:thread-id tid :resume? true})))]
 
     ;; --- position-1: clean lifecycle -------------------------------
-    (exec! actor "p1-intake" {:op :member/intake :subject "position-1"
+    (exec! "p1-intake" {:op :member/intake :subject "position-1"
                               :patch {:id "position-1"
                                       :position-name "climate-policy-platform"}})
 
     ;; publication attempted before the evidence checklist exists
-    (exec! actor "p1-early-publish" {:op :actuation/publish-position :subject "position-1"})
+    (exec! "p1-early-publish" {:op :actuation/publish-position :subject "position-1"})
 
-    (exec! actor "p1-verify" {:op :position/verify :subject "position-1"})
-    (approve! actor "p1-verify")
+    (exec! "p1-verify" {:op :position/verify :subject "position-1"})
+    (approve! "p1-verify")
 
-    (exec! actor "p1-disclaimer" {:op :disclaimer/screen :subject "position-1"})
-    (approve! actor "p1-disclaimer")
+    (exec! "p1-disclaimer" {:op :disclaimer/screen :subject "position-1"})
+    (approve! "p1-disclaimer")
 
     ;; a legality screen that actually clears: senkyo returns
     ;; :permitted-with-obligations once the two required attributes exist
-    (exec! actor "p1-material" {:op :material/screen :subject "position-1"
+    (exec! "p1-material" {:op :material/screen :subject "position-1"
                                 :medium :online-ad
                                 :attrs {:within-campaign-period? true
                                         :sender-is-candidate-or-party true}})
-    (approve! actor "p1-material")
+    (approve! "p1-material")
 
-    (exec! actor "p1-publish" {:op :actuation/publish-position :subject "position-1"})
-    (approve! actor "p1-publish")
+    (exec! "p1-publish" {:op :actuation/publish-position :subject "position-1"})
+    (approve! "p1-publish")
 
     ;; --- HARD holds ------------------------------------------------
-    (exec! actor "p1-doortodoor" {:op :material/screen :subject "position-1"
+    (exec! "p1-doortodoor" {:op :material/screen :subject "position-1"
                                   :medium :door-to-door})
 
-    (exec! actor "p1-fabricate" {:op :material/screen :subject "position-1"
+    (exec! "p1-fabricate" {:op :material/screen :subject "position-1"
                                  :medium :door-to-door
                                  :fabricate-verdict? true})
 
-    (exec! actor "p1-intent" {:op :material/screen :subject "position-1"
+    (exec! "p1-intent" {:op :material/screen :subject "position-1"
                               :medium :poster
                               :intents [:voter-targeting]})
 
-    (exec! actor "p1-republish" {:op :actuation/publish-position :subject "position-1"})
+    (exec! "p1-republish" {:op :actuation/publish-position :subject "position-1"})
 
-    (exec! actor "p2-verify" {:op :position/verify :subject "position-2" :no-spec? true})
+    (exec! "p2-verify" {:op :position/verify :subject "position-2" :no-spec? true})
 
-    (exec! actor "p2-material" {:op :material/screen :subject "position-2"
+    (exec! "p2-material" {:op :material/screen :subject "position-2"
                                 :medium :online-ad})
 
-    (exec! actor "p3-verify" {:op :position/verify :subject "position-3"})
-    (approve! actor "p3-verify")
+    (exec! "p3-verify" {:op :position/verify :subject "position-3"})
+    (approve! "p3-verify")
 
-    (exec! actor "p3-publish" {:op :actuation/publish-position :subject "position-3"})
+    (exec! "p3-publish" {:op :actuation/publish-position :subject "position-3"})
 
-    (exec! actor "p4-disclaimer" {:op :disclaimer/screen :subject "position-4"})
+    (exec! "p4-disclaimer" {:op :disclaimer/screen :subject "position-4"})
 
-    db))
+    (let [{:keys [order by-thread]} @trace]
+      {:db db
+       :audit (vec (mapcat by-thread order))})))
 
 ;; ----------------------------- rendering helpers -----------------------------
 
@@ -181,9 +206,13 @@
       (str/replace ">" "&gt;")))
 
 (defn- nm
-  "Render a keyword/string uniformly (keywords lose their colon)."
+  "Render a keyword/string uniformly, keeping the keyword's NAMESPACE.
+
+  `clojure.core/name` drops it, which silently conflates distinct ops:
+  `:disclaimer/screen` and `:material/screen` both render as \"screen\",
+  and a reader cannot tell which check ran. Qualified names only."
   [v]
-  (if (keyword? v) (name v) (str v)))
+  (if (keyword? v) (subs (str v) 1) (str v)))
 
 (defn- join-rows [rows] (str/join "\n" rows))
 
@@ -327,7 +356,7 @@
         (if retained?
           (str "<span class=\"ok\">retained in record</span> &middot; <code>:approved-by "
                (esc (:approved-by reg)) "</code>")
-          (str "<span class=\"warn\">audit only &mdash; not retained in record</span>")))))
+          "<span class=\"warn\">audit only &mdash; not retained in record</span>"))))
 
 (defn- publication-row [record]
   (td (code (get record "record_id"))
@@ -337,6 +366,26 @@
       (if (get record "immutable")
         "<span class=\"ok\">immutable</span>"
         "<span class=\"muted\">mutable</span>")))
+
+(defn- proposal-row
+  "One PartyOps-LLM proposal, straight from the graph's audit channel,
+  paired with what the governor actually did with it. Shows the
+  containment: a high-confidence proposal is still refused when the
+  independent recomputation disagrees."
+  [ledger {:keys [op subject summary confidence]}]
+  (let [outcome (->> ledger
+                     (filter #(and (= (:subject %) subject) (= (:op %) op)))
+                     last)]
+    (td (code subject)
+        (code op)
+        (str "<span class=\"num\">" confidence "</span>")
+        (esc summary)
+        (case (:t outcome)
+          :committed "<span class=\"ok\">committed</span>"
+          :governor-hold (str "<span class=\"critical\">HARD hold &middot; "
+                              (str/join ", " (map #(esc (nm (:rule %))) (:violations outcome)))
+                              "</span>")
+          "<span class=\"muted\">not committed</span>"))))
 
 (defn- ledger-row [{:keys [t op subject basis]}]
   (td (esc (nm t))
@@ -360,14 +409,19 @@
        "  </section>\n"))
 
 (defn render
-  "Renders the operator console from a store `db` that has already run
-  `run-demo!` (or any other real scenario)."
-  [db]
+  "Renders the operator console from the result of `run-demo!` (or any
+  other real scenario): `{:db store :audit graph-audit-channel}`.
+
+  Both halves are needed and they are not interchangeable -- the store
+  ledger is what the SSoT persisted, the audit vector is what the graph
+  saw. Approval grants exist only in the latter."
+  [{:keys [db audit]}]
   (let [ledger (vec (store/ledger db))
         positions (store/all-positions db)
         hard (holds ledger)
         material-facts (filterv #(= :material/screen (:op %)) ledger)
-        approvals (filterv #(= :approval-granted (:t %)) ledger)
+        approvals (filterv #(= :approval-granted (:t %)) audit)
+        proposals (filterv #(= :partyopsllm-proposal (:t %)) audit)
         cov (facts/coverage)]
     (str
      "<!doctype html>\n<html lang=\"en\"><head><meta charset=\"utf-8\">"
@@ -449,6 +503,16 @@
               ["ISO3" "Jurisdiction" "Owner authority" "Legal basis" "Required evidence" "Provenance"]
               (map jurisdiction-row (sort-by key facts/catalog)))
 
+     (section (str "Contained advisor &mdash; every proposal this run (<span class=\"num\">"
+                   (count proposals) "</span>)")
+              (str "The PartyOps-LLM is sealed into a single graph node and returns only a "
+                   "PROPOSAL; it never writes to the SSoT. Each proposal is shown with its own "
+                   "self-reported confidence next to what the governor actually did with it. "
+                   "Note the door-to-door rows: high advisor confidence does not buy a commit "
+                   "when the independent recomputation disagrees.")
+              ["Position" "Op" "Advisor confidence" "Advisor summary" "Governor outcome"]
+              (map (partial proposal-row ledger) proposals))
+
      (section "Approver attribution"
               (str "Each human approval joined to the SSoT register its op actually wrote. "
                    "The retention column is DERIVED at render time by checking whether "
@@ -489,7 +553,8 @@
 
 (defn -main [& args]
   (let [out (or (first args) "docs/samples/operator-console.html")
-        db (run-demo!)
+        result (run-demo!)
+        db (:db result)
         ledger (vec (store/ledger db))
         hard (holds ledger)]
     ;; Build-time INVARIANT, not a convention: a console that shows no
@@ -504,7 +569,7 @@
                       {:ledger-facts (count ledger)
                        :fact-types (frequencies (map :t ledger))})))
     (io/make-parents out)
-    (spit out (render db))
+    (spit out (render result))
     (println "wrote" out
              (str "(" (count ledger) " ledger facts, "
                   (count hard) " HARD governor holds, "

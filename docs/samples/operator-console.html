@@ -2489,23 +2489,23 @@ img,svg { max-width: 100%; height: auto; }</style></head><body>
       <thead><tr><th>Phase</th><th>Label</th><th>Write-enabled ops</th><th>Auto-commit ops</th></tr></thead>
       <tbody>
         <tr><td><span class="num">0</span></td><td>read-only</td><td><span class="muted">none</span></td><td><span class="muted">none</span></td></tr>
-        <tr><td><span class="num">1</span></td><td>assisted-intake</td><td><code>intake</code></td><td><span class="muted">none</span></td></tr>
-        <tr><td><span class="num">2</span></td><td>assisted-verify</td><td><code>screen</code> <code>screen</code> <code>intake</code> <code>verify</code></td><td><span class="muted">none</span></td></tr>
-        <tr><td><span class="num">3</span></td><td>supervised-auto</td><td><code>publish-position</code> <code>screen</code> <code>screen</code> <code>intake</code> <code>verify</code></td><td><code>intake</code></td></tr>
+        <tr><td><span class="num">1</span></td><td>assisted-intake</td><td><code>member/intake</code></td><td><span class="muted">none</span></td></tr>
+        <tr><td><span class="num">2</span></td><td>assisted-verify</td><td><code>disclaimer/screen</code> <code>material/screen</code> <code>member/intake</code> <code>position/verify</code></td><td><span class="muted">none</span></td></tr>
+        <tr><td><span class="num">3</span></td><td>supervised-auto</td><td><code>actuation/publish-position</code> <code>disclaimer/screen</code> <code>material/screen</code> <code>member/intake</code> <code>position/verify</code></td><td><code>member/intake</code></td></tr>
       </tbody>
     </table>
   </section>
   <section class="card">
     <h2>Action gate (Political Organization Governance Governor)</h2>
-    <p class="muted">Derived from the phase table, not hand-described: an op that appears in no phase's auto set is structurally always a human decision. The governor independently escalates the <span class="num">1</span> high-stakes stake (<code>publish-position</code>) as well, so two layers agree. Confidence floor: <span class="num">0.6</span>.</p>
+    <p class="muted">Derived from the phase table, not hand-described: an op that appears in no phase's auto set is structurally always a human decision. The governor independently escalates the <span class="num">1</span> high-stakes stake (<code>actuation/publish-position</code>) as well, so two layers agree. Confidence floor: <span class="num">0.6</span>.</p>
     <table>
       <thead><tr><th>Op</th><th>Write-enabled at phase</th><th>Auto-commit eligible</th></tr></thead>
       <tbody>
-        <tr><td><code>publish-position</code></td><td>3</td><td><span class="critical">never &mdash; always a human decision</span></td></tr>
-        <tr><td><code>screen</code></td><td>2, 3</td><td><span class="critical">never &mdash; always a human decision</span></td></tr>
-        <tr><td><code>screen</code></td><td>2, 3</td><td><span class="critical">never &mdash; always a human decision</span></td></tr>
-        <tr><td><code>intake</code></td><td>1, 2, 3</td><td><span class="warn">phase 3</span></td></tr>
-        <tr><td><code>verify</code></td><td>2, 3</td><td><span class="critical">never &mdash; always a human decision</span></td></tr>
+        <tr><td><code>actuation/publish-position</code></td><td>3</td><td><span class="critical">never &mdash; always a human decision</span></td></tr>
+        <tr><td><code>disclaimer/screen</code></td><td>2, 3</td><td><span class="critical">never &mdash; always a human decision</span></td></tr>
+        <tr><td><code>material/screen</code></td><td>2, 3</td><td><span class="critical">never &mdash; always a human decision</span></td></tr>
+        <tr><td><code>member/intake</code></td><td>1, 2, 3</td><td><span class="warn">phase 3</span></td></tr>
+        <tr><td><code>position/verify</code></td><td>2, 3</td><td><span class="critical">never &mdash; always a human decision</span></td></tr>
       </tbody>
     </table>
   </section>
@@ -2515,17 +2515,17 @@ img,svg { max-width: 100%; height: auto; }</style></head><body>
     <table>
       <thead><tr><th>Position</th><th>Op</th><th>Rule</th><th>Detail</th><th>Advisor confidence</th></tr></thead>
       <tbody>
-        <tr><td><code>position-1</code></td><td><code>publish-position</code></td><td><span class="critical">evidence-incomplete</span></td><td>法域の必要書類(会員合意記録/表示義務遵守記録/運営機関承認記録/公表通知記録等)が充足していない状態での公表提案</td><td><span class="num">0.9</span></td></tr>
-        <tr><td><code>position-1</code></td><td><code>screen</code></td><td><span class="critical">campaign-conduct-not-permitted</span></td><td>法域 JPN / 手段 :door-to-door の screen 結果が :prohibited: この法域ではこの手段を使えない。blocking: 戸別訪問の禁止 —— この法域ではこの手段自体が禁じられている。条件を足しても解けない。</td><td><span class="num">0.9</span></td></tr>
-        <tr><td><code>position-1</code></td><td><code>screen</code></td><td><span class="critical">campaign-conduct-not-permitted</span>
+        <tr><td><code>position-1</code></td><td><code>actuation/publish-position</code></td><td><span class="critical">evidence-incomplete</span></td><td>法域の必要書類(会員合意記録/表示義務遵守記録/運営機関承認記録/公表通知記録等)が充足していない状態での公表提案</td><td><span class="num">0.9</span></td></tr>
+        <tr><td><code>position-1</code></td><td><code>material/screen</code></td><td><span class="critical">campaign-conduct-not-permitted</span></td><td>法域 JPN / 手段 :door-to-door の screen 結果が :prohibited: この法域ではこの手段を使えない。blocking: 戸別訪問の禁止 —— この法域ではこの手段自体が禁じられている。条件を足しても解けない。</td><td><span class="num">0.9</span></td></tr>
+        <tr><td><code>position-1</code></td><td><code>material/screen</code></td><td><span class="critical">campaign-conduct-not-permitted</span>
 <span class="critical">screen-verdict-mismatch</span></td><td>法域 JPN / 手段 :door-to-door の screen 結果が :prohibited: この法域ではこの手段を使えない。blocking: 戸別訪問の禁止 —— この法域ではこの手段自体が禁じられている。条件を足しても解けない。
 advisor の主張 :permitted と独立再計算 :prohibited が食い違う</td><td><span class="num">0.9</span></td></tr>
-        <tr><td><code>position-1</code></td><td><code>screen</code></td><td><span class="critical">campaign-conduct-not-permitted</span></td><td>法域 JPN / 手段 :poster の screen 結果が :out-of-scope: 扱わない意図が含まれている: voter-targeting。screen は実行されない。</td><td><span class="num">0.9</span></td></tr>
-        <tr><td><code>position-1</code></td><td><code>publish-position</code></td><td><span class="critical">already-published</span></td><td>position-1 は既に公表済み</td><td><span class="num">0.9</span></td></tr>
-        <tr><td><code>position-2</code></td><td><code>verify</code></td><td><span class="critical">no-spec-basis</span></td><td>公式spec-basisの引用が無い提案は法域要件として扱えない</td><td><span class="num">0.9</span></td></tr>
-        <tr><td><code>position-2</code></td><td><code>screen</code></td><td><span class="critical">campaign-conduct-not-permitted</span></td><td>法域 ATL / 手段 :online-ad の screen 結果が :no-spec-basis: ATL の規制カタログが senkyo に無い。**spec-basis 無しは「規制が無い」ではない。** 要件を創作してはならず、governor はこの提案を保留すること。</td><td><span class="num">0.9</span></td></tr>
-        <tr><td><code>position-3</code></td><td><code>publish-position</code></td><td><span class="critical">member-consensus-share-insufficient</span></td><td>position-3 の賛成票比率(45/100)が必要合意比率(0.6)を下回っている</td><td><span class="num">0.3</span></td></tr>
-        <tr><td><code>position-4</code></td><td><code>screen</code></td><td><span class="critical">campaign-finance-disclaimer-missing</span></td><td>選挙運動用/政治活動用表示義務を欠いた状態での公表提案は進められない</td><td><span class="num">0.95</span></td></tr>
+        <tr><td><code>position-1</code></td><td><code>material/screen</code></td><td><span class="critical">campaign-conduct-not-permitted</span></td><td>法域 JPN / 手段 :poster の screen 結果が :out-of-scope: 扱わない意図が含まれている: voter-targeting。screen は実行されない。</td><td><span class="num">0.9</span></td></tr>
+        <tr><td><code>position-1</code></td><td><code>actuation/publish-position</code></td><td><span class="critical">already-published</span></td><td>position-1 は既に公表済み</td><td><span class="num">0.9</span></td></tr>
+        <tr><td><code>position-2</code></td><td><code>position/verify</code></td><td><span class="critical">no-spec-basis</span></td><td>公式spec-basisの引用が無い提案は法域要件として扱えない</td><td><span class="num">0.9</span></td></tr>
+        <tr><td><code>position-2</code></td><td><code>material/screen</code></td><td><span class="critical">campaign-conduct-not-permitted</span></td><td>法域 ATL / 手段 :online-ad の screen 結果が :no-spec-basis: ATL の規制カタログが senkyo に無い。**spec-basis 無しは「規制が無い」ではない。** 要件を創作してはならず、governor はこの提案を保留すること。</td><td><span class="num">0.9</span></td></tr>
+        <tr><td><code>position-3</code></td><td><code>actuation/publish-position</code></td><td><span class="critical">member-consensus-share-insufficient</span></td><td>position-3 の賛成票比率(45/100)が必要合意比率(0.6)を下回っている</td><td><span class="num">0.3</span></td></tr>
+        <tr><td><code>position-4</code></td><td><code>disclaimer/screen</code></td><td><span class="critical">campaign-finance-disclaimer-missing</span></td><td>選挙運動用/政治活動用表示義務を欠いた状態での公表提案は進められない</td><td><span class="num">0.95</span></td></tr>
       </tbody>
     </table>
   </section>
@@ -2563,12 +2563,40 @@ advisor の主張 :permitted と独立再計算 :prohibited が食い違う</td>
     </table>
   </section>
   <section class="card">
+    <h2>Contained advisor &mdash; every proposal this run (<span class="num">15</span>)</h2>
+    <p class="muted">The PartyOps-LLM is sealed into a single graph node and returns only a PROPOSAL; it never writes to the SSoT. Each proposal is shown with its own self-reported confidence next to what the governor actually did with it. Note the door-to-door rows: high advisor confidence does not buy a commit when the independent recomputation disagrees.</p>
+    <table>
+      <thead><tr><th>Position</th><th>Op</th><th>Advisor confidence</th><th>Advisor summary</th><th>Governor outcome</th></tr></thead>
+      <tbody>
+        <tr><td><code>position-1</code></td><td><code>member/intake</code></td><td><span class="num">0.97</span></td><td>会員/支持者記録更新: (:id :position-name)</td><td><span class="ok">committed</span></td></tr>
+        <tr><td><code>position-1</code></td><td><code>actuation/publish-position</code></td><td><span class="num">0.9</span></td><td>position-1 向け公表提案 (position=climate-policy-platform)</td><td><span class="critical">HARD hold &middot; already-published</span></td></tr>
+        <tr><td><code>position-1</code></td><td><code>position/verify</code></td><td><span class="num">0.9</span></td><td>JPN (総務省 (Ministry of Internal Affairs and Communications, MIC)) 向け必要書類 4 件を提案</td><td><span class="ok">committed</span></td></tr>
+        <tr><td><code>position-1</code></td><td><code>disclaimer/screen</code></td><td><span class="num">0.9</span></td><td>climate-policy-platform: 表示義務充足を確認</td><td><span class="ok">committed</span></td></tr>
+        <tr><td><code>position-1</code></td><td><code>material/screen</code></td><td><span class="num">0.9</span></td><td>climate-policy-platform: :online-ad の適法性 screen -&gt; :permitted-with-obligations</td><td><span class="critical">HARD hold &middot; campaign-conduct-not-permitted</span></td></tr>
+        <tr><td><code>position-1</code></td><td><code>actuation/publish-position</code></td><td><span class="num">0.9</span></td><td>position-1 向け公表提案 (position=climate-policy-platform)</td><td><span class="critical">HARD hold &middot; already-published</span></td></tr>
+        <tr><td><code>position-1</code></td><td><code>material/screen</code></td><td><span class="num">0.9</span></td><td>climate-policy-platform: :door-to-door の適法性 screen -&gt; :prohibited</td><td><span class="critical">HARD hold &middot; campaign-conduct-not-permitted</span></td></tr>
+        <tr><td><code>position-1</code></td><td><code>material/screen</code></td><td><span class="num">0.9</span></td><td>climate-policy-platform: :door-to-door の適法性 screen -&gt; :permitted</td><td><span class="critical">HARD hold &middot; campaign-conduct-not-permitted</span></td></tr>
+        <tr><td><code>position-1</code></td><td><code>material/screen</code></td><td><span class="num">0.9</span></td><td>climate-policy-platform: :poster の適法性 screen -&gt; :out-of-scope</td><td><span class="critical">HARD hold &middot; campaign-conduct-not-permitted</span></td></tr>
+        <tr><td><code>position-1</code></td><td><code>actuation/publish-position</code></td><td><span class="num">0.9</span></td><td>position-1 向け公表提案 (position=climate-policy-platform)</td><td><span class="critical">HARD hold &middot; already-published</span></td></tr>
+        <tr><td><code>position-2</code></td><td><code>position/verify</code></td><td><span class="num">0.9</span></td><td>ATL の公式spec-basisが見つかりません</td><td><span class="critical">HARD hold &middot; no-spec-basis</span></td></tr>
+        <tr><td><code>position-2</code></td><td><code>material/screen</code></td><td><span class="num">0.9</span></td><td>atlantis-platform: :online-ad の適法性 screen -&gt; :no-spec-basis</td><td><span class="critical">HARD hold &middot; campaign-conduct-not-permitted</span></td></tr>
+        <tr><td><code>position-3</code></td><td><code>position/verify</code></td><td><span class="num">0.9</span></td><td>JPN (総務省 (Ministry of Internal Affairs and Communications, MIC)) 向け必要書類 4 件を提案</td><td><span class="ok">committed</span></td></tr>
+        <tr><td><code>position-3</code></td><td><code>actuation/publish-position</code></td><td><span class="num">0.3</span></td><td>position-3 向け公表提案 (position=tax-reform-endorsement)</td><td><span class="critical">HARD hold &middot; member-consensus-share-insufficient</span></td></tr>
+        <tr><td><code>position-4</code></td><td><code>disclaimer/screen</code></td><td><span class="num">0.95</span></td><td>candidate-endorsement: 表示義務の欠落を検出</td><td><span class="critical">HARD hold &middot; campaign-finance-disclaimer-missing</span></td></tr>
+      </tbody>
+    </table>
+  </section>
+  <section class="card">
     <h2>Approver attribution</h2>
     <p class="muted">Each human approval joined to the SSoT register its op actually wrote. The retention column is DERIVED at render time by checking whether <code>:approved-by</code> is present in the stored record, so it self-corrects if the store changes. Where it says <span class="warn">audit only</span>, the approver is real and is in the audit ledger below, but <code>partyops.store/commit-record!</code> did not carry it into the record &mdash; that effect reads <code>:value</code> (or neither), not <code>:payload</code>. Shown explicitly rather than omitted, so 'nobody approved' and 'the store did not keep it' stay distinguishable.</p>
     <table>
       <thead><tr><th>Position</th><th>Op</th><th>Approved by (audit)</th><th>Retained in SSoT record?</th></tr></thead>
       <tbody>
-
+        <tr><td><code>position-1</code></td><td><code>position/verify</code></td><td>op-1</td><td><span class="ok">retained in record</span> &middot; <code>:approved-by op-1</code></td></tr>
+        <tr><td><code>position-1</code></td><td><code>disclaimer/screen</code></td><td>op-1</td><td><span class="ok">retained in record</span> &middot; <code>:approved-by op-1</code></td></tr>
+        <tr><td><code>position-1</code></td><td><code>material/screen</code></td><td>op-1</td><td><span class="ok">retained in record</span> &middot; <code>:approved-by op-1</code></td></tr>
+        <tr><td><code>position-1</code></td><td><code>actuation/publish-position</code></td><td>op-1</td><td><span class="warn">audit only &mdash; not retained in record</span></td></tr>
+        <tr><td><code>position-3</code></td><td><code>position/verify</code></td><td>op-1</td><td><span class="ok">retained in record</span> &middot; <code>:approved-by op-1</code></td></tr>
       </tbody>
     </table>
   </section>
@@ -2588,28 +2616,28 @@ advisor の主張 :permitted と独立再計算 :prohibited が食い違う</td>
     <table>
       <thead><tr><th>Fact</th><th>Op</th><th>Position</th><th>Basis</th></tr></thead>
       <tbody>
-        <tr><td>committed</td><td><code>intake</code></td><td><code>position-1</code></td><td>id
+        <tr><td>committed</td><td><code>member/intake</code></td><td><code>position-1</code></td><td>id
 position-name</td></tr>
-        <tr><td>governor-hold</td><td><code>publish-position</code></td><td><code>position-1</code></td><td>evidence-incomplete</td></tr>
-        <tr><td>committed</td><td><code>verify</code></td><td><code>position-1</code></td><td>政治資金規正法 (Political Funds Control Act); 公職選挙法 (Public Offices Election Act) -- 政治的表示物の表示義務
+        <tr><td>governor-hold</td><td><code>actuation/publish-position</code></td><td><code>position-1</code></td><td>evidence-incomplete</td></tr>
+        <tr><td>committed</td><td><code>position/verify</code></td><td><code>position-1</code></td><td>政治資金規正法 (Political Funds Control Act); 公職選挙法 (Public Offices Election Act) -- 政治的表示物の表示義務
 https://www.soumu.go.jp/senkyo/seiji_s/</td></tr>
-        <tr><td>committed</td><td><code>screen</code></td><td><code>position-1</code></td><td>disclaimer-check</td></tr>
-        <tr><td>committed</td><td><code>screen</code></td><td><code>position-1</code></td><td>政治資金規正法
+        <tr><td>committed</td><td><code>disclaimer/screen</code></td><td><code>position-1</code></td><td>disclaimer-check</td></tr>
+        <tr><td>committed</td><td><code>material/screen</code></td><td><code>position-1</code></td><td>政治資金規正法
 公職選挙法 第129条
 公職選挙法 第142条の3・第142条の4（平成25年改正のインターネット選挙運動解禁）
 公職選挙法 第189条</td></tr>
-        <tr><td>committed</td><td><code>publish-position</code></td><td><code>position-1</code></td><td>position-1</td></tr>
-        <tr><td>governor-hold</td><td><code>screen</code></td><td><code>position-1</code></td><td>campaign-conduct-not-permitted</td></tr>
-        <tr><td>governor-hold</td><td><code>screen</code></td><td><code>position-1</code></td><td>campaign-conduct-not-permitted
+        <tr><td>committed</td><td><code>actuation/publish-position</code></td><td><code>position-1</code></td><td>position-1</td></tr>
+        <tr><td>governor-hold</td><td><code>material/screen</code></td><td><code>position-1</code></td><td>campaign-conduct-not-permitted</td></tr>
+        <tr><td>governor-hold</td><td><code>material/screen</code></td><td><code>position-1</code></td><td>campaign-conduct-not-permitted
 screen-verdict-mismatch</td></tr>
-        <tr><td>governor-hold</td><td><code>screen</code></td><td><code>position-1</code></td><td>campaign-conduct-not-permitted</td></tr>
-        <tr><td>governor-hold</td><td><code>publish-position</code></td><td><code>position-1</code></td><td>already-published</td></tr>
-        <tr><td>governor-hold</td><td><code>verify</code></td><td><code>position-2</code></td><td>no-spec-basis</td></tr>
-        <tr><td>governor-hold</td><td><code>screen</code></td><td><code>position-2</code></td><td>campaign-conduct-not-permitted</td></tr>
-        <tr><td>committed</td><td><code>verify</code></td><td><code>position-3</code></td><td>政治資金規正法 (Political Funds Control Act); 公職選挙法 (Public Offices Election Act) -- 政治的表示物の表示義務
+        <tr><td>governor-hold</td><td><code>material/screen</code></td><td><code>position-1</code></td><td>campaign-conduct-not-permitted</td></tr>
+        <tr><td>governor-hold</td><td><code>actuation/publish-position</code></td><td><code>position-1</code></td><td>already-published</td></tr>
+        <tr><td>governor-hold</td><td><code>position/verify</code></td><td><code>position-2</code></td><td>no-spec-basis</td></tr>
+        <tr><td>governor-hold</td><td><code>material/screen</code></td><td><code>position-2</code></td><td>campaign-conduct-not-permitted</td></tr>
+        <tr><td>committed</td><td><code>position/verify</code></td><td><code>position-3</code></td><td>政治資金規正法 (Political Funds Control Act); 公職選挙法 (Public Offices Election Act) -- 政治的表示物の表示義務
 https://www.soumu.go.jp/senkyo/seiji_s/</td></tr>
-        <tr><td>governor-hold</td><td><code>publish-position</code></td><td><code>position-3</code></td><td>member-consensus-share-insufficient</td></tr>
-        <tr><td>governor-hold</td><td><code>screen</code></td><td><code>position-4</code></td><td>campaign-finance-disclaimer-missing</td></tr>
+        <tr><td>governor-hold</td><td><code>actuation/publish-position</code></td><td><code>position-3</code></td><td>member-consensus-share-insufficient</td></tr>
+        <tr><td>governor-hold</td><td><code>disclaimer/screen</code></td><td><code>position-4</code></td><td>campaign-finance-disclaimer-missing</td></tr>
       </tbody>
     </table>
   </section>
