@@ -8,7 +8,13 @@
  ;; should override them with git coordinates.
  ;; senkyo — 選挙運動の法域別規制 / 手続き / 選管 join の共有ライブラリ
  ;; （純 .cljc、依存ゼロ）。`:material/screen` op がこれを消費する。
- :deps {io.github.kotoba-lang/langgraph
+ ;; jp-go-digital-design-system (DADS) -- the workspace's BASE design
+ ;; system. Pinned by git sha (not :local/root) so the build-time
+ ;; renderer works in a standalone fork too.
+ :deps {io.github.kotoba-lang/jp-go-digital-design-system
+        {:git/url "https://github.com/kotoba-lang/jp-go-digital-design-system"
+         :git/sha "83db99546eabc53613ae826ea41d1533a3c574af"}
+        io.github.kotoba-lang/langgraph
         {:local/root "../../kotoba-lang/langgraph"}
         io.github.kotoba-lang/senkyo
         {:local/root "../../kotoba-lang/senkyo"}}
@@ -19,6 +25,11 @@
          {:local/root "../../kotoba-lang/langchain"}}}
   ;; clojure -M:dev:run  -> drive the demo through one OperationActor
   :run {:main-opts ["-m" "partyops.sim"]}
+  ;; clojure -M:dev:render-html [out-file] -> regenerate
+  ;; docs/samples/operator-console.html through the REAL actor stack
+  ;; (flagship checklist item 2). Throws if the run produces no HARD
+  ;; governor hold, so the page can never imply the governor is toothless.
+  :render-html {:main-opts ["-m" "partyops.render-html"]}
   :test {:extra-paths ["test"]
          :extra-deps {io.github.cognitect-labs/test-runner
                       {:git/tag "v0.5.1" :git/sha "dfb30dd"}}
