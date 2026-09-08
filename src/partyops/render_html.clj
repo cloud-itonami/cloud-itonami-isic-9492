@@ -35,7 +35,7 @@
   (default `docs/samples/operator-console.html`)."
   (:require [jp-go-dds.skin]
             [clojure.java.io :as io]
-            [clojure.string :as str]
+            [kotoba.lang.text :as str]
             [partyops.store :as store]
             [partyops.facts :as facts]
             [partyops.governor :as governor]
