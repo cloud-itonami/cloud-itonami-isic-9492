@@ -128,7 +128,7 @@ autonomous, at any phase, by construction.** Two independent layers
 enforce this (`partyops.governor`'s `:actuation/publish-position`
 high-stakes gate and `partyops.phase`'s phase table, which never puts
 `:actuation/publish-position` in any phase's `:auto` set) -- see
-`partyops.phase`'s docstring and `test/partyops/phase_test.clj`'s
+`partyops.phase`'s docstring and `test/partyops/phase_test.kotoba`'s
 `publish-position-never-auto-at-any-phase`. The actor may draft,
 check and recommend; a human governing-body officer is always the
 one who actually publishes a position. Matching `leasing`'s/
@@ -264,15 +264,15 @@ reference at all.
 
 | File | Role |
 |---|---|
-| `src/partyops/store.cljc` | **Store** protocol -- `MemStore` ‖ `DatomicStore` (`langchain.db`) + append-only audit ledger + position-publication history. No dynamically-filed sub-record -- the actuation op acts directly on a pre-seeded position, and the double-actuation guard checks a dedicated `:published?` boolean rather than a `:status` value |
-| `src/partyops/registry.cljc` | Position-publication draft records, plus `member-consensus-share-insufficient?` -- an HONEST reuse of this fleet's ratio-based check family (the FOURTH instance, MINIMUM-floor direction like `leasing`'s/`union`'s), not claimed as new |
-| `src/partyops/facts.cljc` | Per-jurisdiction campaign-finance-disclosure/imprint catalog with an official spec-basis citation per entry, honest coverage reporting |
-| `src/partyops/material.cljc` | **Campaign-conduct bridge** to `kotoba-lang/senkyo` -- independent re-screen of a method's legality from the POSITION's jurisdiction, plus the re-exported out-of-scope intent set (the boundary is defined once, in the shared library) |
-| `src/partyops/partyopsllm.cljc` | **PartyOps-LLM** -- `mock-advisor` ‖ `llm-advisor`; intake/jurisdiction-verification/disclaimer-screening/material-screening/publication proposals |
-| `src/partyops/governor.cljc` | **Political Organization Governance Governor** -- 6 HARD checks (spec-basis · evidence-incomplete · campaign-finance-disclaimer-missing, unconditional evaluation, GENUINELY NEW, the 59th grounding of this discipline · member-consensus-share-insufficient, ratio-based reuse, the 4th instance, not claimed as new · **campaign-conduct-not-permitted + screen-verdict-mismatch**, independent re-screen against `senkyo` · already-published guard) + 1 soft (confidence/actuation gate) |
-| `src/partyops/phase.cljc` | **Phase 0→3** -- read-only → assisted intake → assisted verify → supervised (position publication always human; member intake is the ONLY auto-eligible op, no direct capital risk) |
-| `src/partyops/operation.cljc` | **OperationActor** -- langgraph-clj StateGraph |
-| `src/partyops/sim.cljc` | demo driver |
+| `src/partyops/store.kotoba` | **Store** protocol -- `MemStore` ‖ `DatomicStore` (`langchain.db`) + append-only audit ledger + position-publication history. No dynamically-filed sub-record -- the actuation op acts directly on a pre-seeded position, and the double-actuation guard checks a dedicated `:published?` boolean rather than a `:status` value |
+| `src/partyops/registry.kotoba` | Position-publication draft records, plus `member-consensus-share-insufficient?` -- an HONEST reuse of this fleet's ratio-based check family (the FOURTH instance, MINIMUM-floor direction like `leasing`'s/`union`'s), not claimed as new |
+| `src/partyops/facts.kotoba` | Per-jurisdiction campaign-finance-disclosure/imprint catalog with an official spec-basis citation per entry, honest coverage reporting |
+| `src/partyops/material.kotoba` | **Campaign-conduct bridge** to `kotoba-lang/senkyo` -- independent re-screen of a method's legality from the POSITION's jurisdiction, plus the re-exported out-of-scope intent set (the boundary is defined once, in the shared library) |
+| `src/partyops/partyopsllm.kotoba` | **PartyOps-LLM** -- `mock-advisor` ‖ `llm-advisor`; intake/jurisdiction-verification/disclaimer-screening/material-screening/publication proposals |
+| `src/partyops/governor.kotoba` | **Political Organization Governance Governor** -- 6 HARD checks (spec-basis · evidence-incomplete · campaign-finance-disclaimer-missing, unconditional evaluation, GENUINELY NEW, the 59th grounding of this discipline · member-consensus-share-insufficient, ratio-based reuse, the 4th instance, not claimed as new · **campaign-conduct-not-permitted + screen-verdict-mismatch**, independent re-screen against `senkyo` · already-published guard) + 1 soft (confidence/actuation gate) |
+| `src/partyops/phase.kotoba` | **Phase 0→3** -- read-only → assisted intake → assisted verify → supervised (position publication always human; member intake is the ONLY auto-eligible op, no direct capital risk) |
+| `src/partyops/operation.kotoba` | **OperationActor** -- langgraph-clj StateGraph |
+| `src/partyops/sim.kotoba` | demo driver |
 | `test/partyops/*_test.clj` | governor contract · phase invariants · store parity · registry conformance · facts coverage · **campaign-conduct screening** (`material_test.clj`) |
 
 ## Business-process coverage (honest)
