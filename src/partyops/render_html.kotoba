@@ -31,7 +31,7 @@
   reruns against the same seed (verify by diffing two consecutive
   runs into scratch dirs).
 
-  Usage: `clojure -M:dev:render-html [out-file]`
+  Usage: `kbb -M:dev:render-html [out-file]`
   (default `docs/samples/operator-console.html`)."
   (:require [jp-go-dds.skin]
             [clojure.java.io :as io]
@@ -440,7 +440,7 @@
      "<p class=\"muted\">Build-time generated from the REAL actor stack "
      "(<code>partyops.operation</code> &rarr; <code>partyops.governor</code> &rarr; "
      "<code>partyops.store</code>) by <code>partyops.render-html</code> via "
-     "<code>clojure -M:dev:render-html</code>. Every row below is this run's own output "
+     "<code>kbb -M:dev:render-html</code>. Every row below is this run's own output "
      "against the repo's declared seed data &mdash; no hand-written table content, no "
      "invented organizations, positions or figures.</p>\n"
      "<main>\n"
@@ -545,7 +545,7 @@
      "</main>\n"
      "<footer>\n"
      "  <p>cloud-itonami-isic-9492 &middot; ISIC 9492 Activities of political organizations. "
-     "Regenerate with <code>clojure -M:dev:render-html</code>. Deterministic: identical seed "
+     "Regenerate with <code>kbb -M:dev:render-html</code>. Deterministic: identical seed "
      "produces a byte-identical page.</p>\n"
      "</footer>\n"
      "</div>\n"
