@@ -1,0 +1,35 @@
+;; What this vertical's robot physically does, declared for
+;; kotoba.robotics.process (kotoba-lang/robotics). `kbb -M:dev:physics` runs it.
+;;
+;; README "Robotics premise": a document-courier robot handles physical
+;; member-mailing fulfillment for a political organization (ISIC 9492), gated
+;; by the Political Organization Governance Governor. Its physical work is
+;; moving boxed member mailings and leaflets: carting the boxes from the
+;; print store down the building's exit ramp to the delivery van, and lifting
+;; each box into the van.
+;;
+;; Every number without a cited source is marked `estimate` in its :basis.
+;; Replacing an estimate with a sourced value is this bot's growth work.
+{:physics/schema "itonami.physical-ai.spec.v1"
+ :repo "cloud-itonami/cloud-itonami-isic-9492"
+ :cases
+ [{:id :mailing-boxes-to-van
+   :kind :transport
+   :procedure "courier robot carts boxed member mailings from the print store up the 3 deg exit ramp to the delivery van at the kerb"
+   :params {:mass-kg 40.0 :distance-m 60.0 :v-max-mps 1.0 :a-max-mps2 0.5
+            :brake-decel-mps2 0.8 :drive-force-n 180.0 :crr 0.02 :slope-deg 3.0
+            :cog-height-m 0.40 :support-half-length-m 0.30 :payload-cog-height-m 0.70
+            :max-time-s 1800.0}
+   :sweep {:param :payload-kg :values [25.0 50.0 75.0 100.0 125.0 150.0]}
+   :quantity :cycle-time-s
+   :limit {:max 90.0 :basis "estimate: one store-to-van leg short enough to load a van within its kerbside loading stop; a box of five A4 80 g/m2 reams is ~12.5 kg"}
+   :boundary {:lo 5.0 :hi 400.0}}
+  {:id :box-into-van
+   :kind :manipulator
+   :procedure "arm lifts one box of mailings from the cart into the van's cargo bed"
+   :params {:l1-m 0.50 :l2-m 0.45 :m1-kg 5.0 :m2-kg 3.5
+            :from [0.50 0.20] :to [0.70 0.60] :duration-s 2.5 :steps 500}
+   :sweep {:param :payload-kg :values [2.5 5.0 7.5 10.0 12.5 15.0]}
+   :quantity :peak-tau1-nm
+   :limit {:max 120.0 :basis "estimate: continuous shoulder torque of a 10 kg-class collaborative arm"}
+   :boundary {:lo 0.5 :hi 40.0}}]}
